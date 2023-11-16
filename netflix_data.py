@@ -10,6 +10,7 @@ import os
 import json
 import time
 import concurrent
+import numpy as np
 
 NETFLIX_DATA = "data/netflix_titles.csv"
 os.makedirs("generated", exist_ok=True)
@@ -20,7 +21,7 @@ def main():
     # gen_type_column_graphs(netflix_data)
     # gen_title_column_graphs(netflix_data)
     # gen_director_column_graphs(netflix_data)
-    # gen_cast_column_gephi_tables(netflix_data)
+    gen_cast_column_gephi_tables(netflix_data)
 
 
 def gen_type_column_graphs(data):
@@ -76,7 +77,6 @@ def gen_cast_column_gephi_tables(data):
     Column: cast
 
     Note: We use Gephi for this column to generate a network graph.
-    This function just generates the edge table for Gephi and pulls Actor data from TMDB.
     """
     movies_actors = {}
     for movie, actors in zip(data["title"], data["cast"]):
@@ -134,9 +134,36 @@ def gen_cast_column_gephi_tables(data):
             time.sleep(60)
             print(f"Got {len(actor_details)}/{len(all_actors)} actors' data so far...")
     save_current_actor_data(actor_details)
-    # copy to data dir
-    os.makedirs("data", exist_ok=True)
-    os.system("cp generated/col_4_actors_data.json data/col_4_actors_data.json")
+
+    # Pull Popularities and Create Nodes Table for Gephi
+    node_to_popularity = {}
+    for actor, details in actor_details.items():
+        popularity = details.get("popularity", 0)
+        if (
+            popularity == 0
+        ):  # If popularity is 0, set it to 0.1 so at least it shows up in the graph
+            popularity = 0.1
+        node_to_popularity[actor] = popularity
+
+    csv_filename = "generated/col_4_gephi_node_to_popularity.csv"
+    with open(csv_filename, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Id", "Label", "Popularity"])
+        for actor, popularity in node_to_popularity.items():
+            writer.writerow([actor, actor, popularity])
+
+    csv_filename = "generated/col_4_gephi_node_to_popularity_filtered.csv"
+    percentile = np.percentile(list(node_to_popularity.values()), 0.99)
+    with open(csv_filename, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Id", "Label", "Popularity"])
+        for actor, popularity in node_to_popularity.items():
+            if (
+                popularity >= percentile
+            ):  # Filter out the top 1% of actors
+                writer.writerow([actor, actor, popularity])
+                continue
+            writer.writerow([actor, "", popularity])  # otherwise, don't show the label
 
 
 if __name__ == "__main__":

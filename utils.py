@@ -104,4 +104,4 @@ def get_actor_details(actor_name) -> Dict:
         details_response = requests.get(details_url).json()
         return details_response
     else:
-        return 0
+        return {}
