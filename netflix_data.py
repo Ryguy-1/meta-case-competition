@@ -176,6 +176,14 @@ def gen_cast_column_gephi_tables(data):
             (actor, node_to_popularity[actor])
         )
 
+    # Filter Modularity Classes By Those with 1% or More of the Total Actors
+    total_actors = len(node_to_modularity_class)
+    modularity_class_to_actor_popularity_list = {
+        modularity_class: actor_popularity_list
+        for modularity_class, actor_popularity_list in modularity_class_to_actor_popularity_list.items()
+        if len(actor_popularity_list) >= total_actors * 0.01
+    }
+
     # Sort each list by popularity and take top 10
     for (
         modularity_class,
