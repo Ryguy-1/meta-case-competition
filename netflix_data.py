@@ -152,6 +152,11 @@ def gen_cast_column_gephi_tables(data):
         for actor, popularity in node_to_popularity.items():
             writer.writerow([actor, actor, popularity])
 
+    """
+    STOP HERE IF GENERATING ALL DATA FROM SCRATCH.
+    Next part relies on using previous node data to generate: data/gephi_10_modularities.csv.
+    The following uses the modularity code to create a new csv with labels only for the top 10 actors per modularity class.
+    """
     # Create node to popularity table, but, unless the actor is in the top 10 for their modularity class by popularity, set their label to ""
     csv_filename = "generated/col_4_gephi_node_to_popularity_top_10_per_modularity_10_with_labels.csv"
 
