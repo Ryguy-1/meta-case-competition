@@ -1,0 +1,17 @@
+# Ignore .data files
+*.data
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+# Python virtual environments
+venv/
+# Compiled Python files
+*.pyc
+# Python cache files
+__pycache__/
+# Python distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Config
+config.yml
