@@ -141,8 +141,8 @@ def gen_cast_column_gephi_tables(data):
         popularity = details.get("popularity", 0)
         if (
             popularity == 0
-        ):  # If popularity is 0, set it to 0.1 so at least it shows up in the graph
-            popularity = 0.1
+        ):  # If popularity is 0, set it to 0.5 so at least it shows up in the graph
+            popularity = 0.5
         node_to_popularity[actor] = popularity
 
     csv_filename = "generated/col_4_gephi_node_to_popularity.csv"
@@ -152,36 +152,8 @@ def gen_cast_column_gephi_tables(data):
         for actor, popularity in node_to_popularity.items():
             writer.writerow([actor, actor, popularity])
 
-    csv_filename = "generated/col_4_gephi_node_to_popularity_top_10_per_nationality.csv"
-    actors_by_country_with_popularities = {}
-    for actor, details in actor_details.items():
-        country = details.get("place_of_birth", "")
-        if country in ["", None]:
-            continue
-        country = country.split(",")[-1].strip()  # Ensure we only get the country
-        if country not in actors_by_country_with_popularities:
-            actors_by_country_with_popularities[country] = []
-        actors_by_country_with_popularities[country].append(
-            (actor, node_to_popularity[actor])
-        )
-    top_n_actors_by_country = {}
-    for country, actors in actors_by_country_with_popularities.items():
-        actors.sort(key=lambda x: x[1], reverse=True)
-        top_n_actors_by_country[country] = actors[:10]
-
-    # write to csv. if is top actor, put label, otherwise put empty string
-    with open(csv_filename, mode="w", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Id", "Label", "Popularity"])
-        for actor, popularity in node_to_popularity.items():
-            country = actor_details[actor].get("place_of_birth", "")
-            if country in ["", None]:
-                continue
-            country = country.split(",")[-1].strip()
-            if (actor, popularity) in top_n_actors_by_country[country]:
-                writer.writerow([actor, actor, popularity])
-            else:
-                writer.writerow([actor, "", popularity])
+    # Create node to popularity table, but, unless the actor is in the top 10 for their modularity class by popularity, set their label to ""
+    # TODO: Finish this.
 
 
 if __name__ == "__main__":
