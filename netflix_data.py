@@ -152,18 +152,36 @@ def gen_cast_column_gephi_tables(data):
         for actor, popularity in node_to_popularity.items():
             writer.writerow([actor, actor, popularity])
 
-    csv_filename = "generated/col_4_gephi_node_to_popularity_filtered.csv"
-    percentile = np.percentile(list(node_to_popularity.values()), 0.99)
+    csv_filename = "generated/col_4_gephi_node_to_popularity_top_10_per_nationality.csv"
+    actors_by_country_with_popularities = {}
+    for actor, details in actor_details.items():
+        country = details.get("place_of_birth", "")
+        if country in ["", None]:
+            continue
+        country = country.split(",")[-1].strip()  # Ensure we only get the country
+        if country not in actors_by_country_with_popularities:
+            actors_by_country_with_popularities[country] = []
+        actors_by_country_with_popularities[country].append(
+            (actor, node_to_popularity[actor])
+        )
+    top_n_actors_by_country = {}
+    for country, actors in actors_by_country_with_popularities.items():
+        actors.sort(key=lambda x: x[1], reverse=True)
+        top_n_actors_by_country[country] = actors[:10]
+
+    # write to csv. if is top actor, put label, otherwise put empty string
     with open(csv_filename, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["Id", "Label", "Popularity"])
         for actor, popularity in node_to_popularity.items():
-            if (
-                popularity >= percentile
-            ):  # Filter out the top 1% of actors
-                writer.writerow([actor, actor, popularity])
+            country = actor_details[actor].get("place_of_birth", "")
+            if country in ["", None]:
                 continue
-            writer.writerow([actor, "", popularity])  # otherwise, don't show the label
+            country = country.split(",")[-1].strip()
+            if (actor, popularity) in top_n_actors_by_country[country]:
+                writer.writerow([actor, actor, popularity])
+            else:
+                writer.writerow([actor, "", popularity])
 
 
 if __name__ == "__main__":
