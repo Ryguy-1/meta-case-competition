@@ -81,7 +81,7 @@ def gen_cast_column_gephi_tables(data):
     movies_actors = {}
     for movie, actors in zip(data["title"], data["cast"]):
         if isinstance(actors, str):
-            movies_actors[movie] = actors.split(", ")
+            movies_actors[movie] = [x.strip() for x in actors.split(",")]
             continue
         movies_actors[movie] = []
 
@@ -153,7 +153,48 @@ def gen_cast_column_gephi_tables(data):
             writer.writerow([actor, actor, popularity])
 
     # Create node to popularity table, but, unless the actor is in the top 10 for their modularity class by popularity, set their label to ""
-    # TODO: Finish this.
+    csv_filename = "generated/col_4_gephi_node_to_popularity_top_10_per_modularity_10_with_labels.csv"
+
+    # Load Modularity Class Data from File (initialize)
+    node_to_modularity_class = pd.read_csv("data/gephi_10_modularities.csv")
+    node_to_modularity_class = {
+        row["Id"]: row["modularity_class"]
+        for _, row in node_to_modularity_class.iterrows()
+    }  # Map actor to modularity class
+
+    # Get top 10 actors per modularity class
+    modularity_class_to_actor_popularity_list = {}
+    for actor, modularity_class in node_to_modularity_class.items():
+        if modularity_class not in modularity_class_to_actor_popularity_list:
+            modularity_class_to_actor_popularity_list[modularity_class] = []
+        modularity_class_to_actor_popularity_list[modularity_class].append(
+            (actor, node_to_popularity[actor])
+        )
+
+    # Sort each list by popularity and take top 10
+    for (
+        modularity_class,
+        actor_popularity_list,
+    ) in modularity_class_to_actor_popularity_list.items():
+        modularity_class_to_actor_popularity_list[modularity_class] = sorted(
+            actor_popularity_list, key=lambda x: x[1], reverse=True
+        )[:10]
+
+    # Get Just List of Actors in Top 10 Per Modularity Class
+    top_actors = set()
+    for actor_popularity_list in modularity_class_to_actor_popularity_list.values():
+        for actor, _ in actor_popularity_list:
+            top_actors.add(actor)
+
+    # Create CSV
+    with open(csv_filename, mode="w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Id", "Label", "Popularity"])
+        for actor, popularity in node_to_popularity.items():
+            if actor in top_actors:
+                writer.writerow([actor, actor, popularity])
+            else:
+                writer.writerow([actor, "", popularity])
 
 
 if __name__ == "__main__":
