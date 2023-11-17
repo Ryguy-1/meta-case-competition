@@ -21,7 +21,7 @@ def main():
     # gen_type_column_graphs(netflix_data)
     # gen_title_column_graphs(netflix_data)
     # gen_director_column_graphs(netflix_data)
-    gen_cast_column_gephi_tables(netflix_data)
+    # gen_cast_column_gephi_tables(netflix_data)
 
 
 def gen_type_column_graphs(data):
