@@ -12,6 +12,3 @@ __pycache__/
 dist/
 build/
 *.egg-info/
-
-# Config
-config.yml
