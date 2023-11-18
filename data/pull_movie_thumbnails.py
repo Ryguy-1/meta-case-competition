@@ -4,7 +4,7 @@ import pandas as pd
 import re
 import os
 
-OUTPUT_FOLDER = "data/content_thumbnails"
+OUTPUT_FOLDER = "content_thumbnails"
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
@@ -39,7 +39,7 @@ def download_image(image_url, save_path) -> bool:
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("data/netflix_titles.csv")
+    data = pd.read_csv("netflix_titles.csv")
     titles = data["title"]
     i = 0
     for title in titles:

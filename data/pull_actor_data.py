@@ -7,7 +7,7 @@ from typing import Dict
 import requests
 from api_keys import tmdb as config
 
-OUTPUT_FILENAME = "data/col_4_actors_data.json"
+OUTPUT_FILENAME = "col_4_actors_data.json"
 
 
 def load_current_actor_data() -> Dict:
@@ -41,7 +41,7 @@ def get_actor_details(actor_name: str) -> Dict:
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("data/netflix_titles.csv")
+    data = pd.read_csv("netflix_titles.csv")
     movies_actors = {}
     for movie, actors in zip(data["title"], data["cast"]):
         if isinstance(actors, str):
@@ -72,6 +72,6 @@ if __name__ == "__main__":
                 actor = futures.pop(future)
                 actor_details[actor] = future.result()
             save_current_actor_data(actor_details)
-            time.sleep(10)
+            time.sleep(60)
             print(f"Got {len(actor_details)}/{len(all_actors)} actors' data so far...")
     save_current_actor_data(actor_details)
