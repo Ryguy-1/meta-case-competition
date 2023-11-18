@@ -1,10 +1,14 @@
+"""Generates all data related to cast members."""
+
 import pandas as pd
 from itertools import combinations
 import csv
 from llm_utils import *
-from utils import *
 import os
 import json
+import datetime
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 NETFLIX_DATA = "data/netflix_titles.csv"
@@ -38,12 +42,54 @@ def main():
             popularity = 0.5
         actor_to_popularity[actor] = popularity
 
+    ##### POPULATE ACTOR TO AGE ##### (age stored like "birthday": "1975-02-09",)
+    actor_to_age = {}
+    for actor, details in actor_details.items():
+        birthday = details.get("birthday", 0)
+        if birthday == 0 or birthday is None:
+            continue
+        birthday = datetime.datetime.strptime(birthday, "%Y-%m-%d")
+        today = datetime.datetime.today()
+        age = (
+            today.year
+            - birthday.year
+            - ((today.month, today.day) < (birthday.month, birthday.day))
+        )
+        actor_to_age[actor] = age
+
+    ##### POPULATE ACTOR TO GENDER ##### (0=N/A, 1=F, 2=M)
+    actor_to_gender = {}
+    for actor, details in actor_details.items():
+        gender = details.get("gender", 0)
+        if gender == 1:
+            actor_to_gender[actor] = "F"
+        elif gender == 2:
+            actor_to_gender[actor] = "M"
+
     ##### POPULATE ACTOR TO MODULARITY CLASS #####
     actor_to_modularity_class = pd.read_csv("data/gephi_10_modularities.csv")
     actor_to_modularity_class = {
         row["Id"]: row["modularity_class"]
         for _, row in actor_to_modularity_class.iterrows()
     }  # Map actor to modularity class
+
+    ##### GENERATE CAST DATA GRAPHS OVER TIME #####
+    gen_popularity_of_actors_over_time(
+        netflix_data=netflix_data,
+        actor_to_popularity=actor_to_popularity,
+        output_filename="generated/col_4_popularity_of_actor_over_time.png",
+    )
+    gen_actor_age_over_time(
+        netflix_data=netflix_data,
+        actor_to_age=actor_to_age,
+        output_filename="generated/col_4_age_of_actor_over_time.png",
+    )
+
+    gen_actor_gender_over_time(
+        netflix_data=netflix_data,
+        actor_to_gender=actor_to_gender,
+        output_filename="generated/col_4_gender_of_actor_over_time.png",
+    )
 
     ##### GENERATE GEPHI CSV FILES #####
     gen_gephi_edges(
@@ -59,6 +105,124 @@ def main():
         actor_to_modularity_class=actor_to_modularity_class,
         output_filename="generated/col_4_gephi_id_label_popularity_modular_labels.csv",
     )
+
+
+def gen_popularity_of_actors_over_time(
+    netflix_data, actor_to_popularity, output_filename
+):
+    """Generate Graphs of Popularity of Actors Used Over Time."""
+    # For each row in netflix data, get the date added (datetime -> year) and (actor -> popularity)
+    # Note: format of date is currently like "September 25, 2021"
+    year_to_actor_popularity = {}
+    for _, row in netflix_data.iterrows():
+        if not isinstance(row["cast"], str):
+            continue
+        if not isinstance(row[DATE_ADDED_COLUMN_NAME], str):
+            continue
+        date_added = datetime.datetime.strptime(
+            row[DATE_ADDED_COLUMN_NAME].strip(), "%B %d, %Y"
+        )
+        actors_this_movie = [x.strip() for x in row["cast"].split(",")]
+        if date_added.year not in year_to_actor_popularity:
+            year_to_actor_popularity[date_added.year] = []
+        year_to_actor_popularity[date_added.year] += [
+            actor_to_popularity[actor] for actor in actors_this_movie
+        ]
+    year_to_avg_actor_popularity = {
+        year: sum(popularities) / len(popularities)
+        for year, popularities in year_to_actor_popularity.items()
+    }
+    # Plot
+    sns.set_theme(style="darkgrid")
+    sns.lineplot(
+        x=list(year_to_avg_actor_popularity.keys()),
+        y=list(year_to_avg_actor_popularity.values()),
+    )
+    plt.ylim(bottom=0)
+    plt.xlabel("Year")
+    plt.ylabel("Average Actor IMDB Popularity")
+    plt.title("Average Actor IMDB Popularity Over Time")
+    plt.savefig(output_filename)
+    plt.close()
+
+
+def gen_actor_age_over_time(netflix_data, actor_to_age, output_filename):
+    """Generate Graphs of Age of Actors Used Over Time."""
+    # For each row in netflix data, get the date added (datetime -> year) and (actor -> age)
+    # Note: format of date is currently like "September 25, 2021"
+    year_to_actor_age = {}
+    for _, row in netflix_data.iterrows():
+        if not isinstance(row["cast"], str):
+            continue
+        if not isinstance(row[DATE_ADDED_COLUMN_NAME], str):
+            continue
+        date_added = datetime.datetime.strptime(
+            row[DATE_ADDED_COLUMN_NAME].strip(), "%B %d, %Y"
+        )
+        actors_this_movie = [x.strip() for x in row["cast"].split(",")]
+        if date_added.year not in year_to_actor_age:
+            year_to_actor_age[date_added.year] = []
+        year_to_actor_age[date_added.year] += [
+            actor_to_age[actor]
+            for actor in actors_this_movie
+            if actor in actor_to_age  # not all actors have age
+        ]
+    year_to_avg_actor_age = {
+        year: sum(ages) / len(ages)
+        for year, ages in year_to_actor_age.items()
+        if len(ages) > 0  # not all years have actors with age
+    }
+    # Plot
+    sns.set_theme(style="darkgrid")
+    sns.lineplot(
+        x=list(year_to_avg_actor_age.keys()), y=list(year_to_avg_actor_age.values())
+    )
+    plt.ylim(bottom=0)
+    plt.xlabel("Year")
+    plt.ylabel("Average Actor Age")
+    plt.title("Average Actor Age Over Time")
+    plt.savefig(output_filename)
+
+
+def gen_actor_gender_over_time(netflix_data, actor_to_gender, output_filename):
+    """Generate Graphs of Gender Distribution of Actors Used Over Time."""
+    year_to_gender_count = {}
+    for _, row in netflix_data.iterrows():
+        if not isinstance(row["cast"], str):
+            continue
+        if not isinstance(row[DATE_ADDED_COLUMN_NAME], str):
+            continue
+        date_added = datetime.datetime.strptime(
+            row[DATE_ADDED_COLUMN_NAME].strip(), "%B %d, %Y"
+        )
+        actors_this_movie = [x.strip() for x in row["cast"].split(",")]
+        if date_added.year not in year_to_gender_count:
+            year_to_gender_count[date_added.year] = {"F": 0, "M": 0}
+        for actor in actors_this_movie:
+            if actor in actor_to_gender:  # Check if actor's gender is known
+                actor_gender = actor_to_gender[actor]
+                year_to_gender_count[date_added.year][actor_gender] += 1
+
+    # Convert the data into a format suitable for plotting
+    years = []
+    male_counts = []
+    female_counts = []
+    for year, genders in year_to_gender_count.items():
+        years.append(year)
+        male_counts.append(genders["M"])
+        female_counts.append(genders["F"])
+
+    # Plotting
+    sns.set_theme(style="darkgrid")
+    plt.figure(figsize=(10, 6))
+    plt.plot(years, male_counts, label="Male")
+    plt.plot(years, female_counts, label="Female")
+    plt.xlabel("Year")
+    plt.ylabel("Count of Actors")
+    plt.title("Gender Distribution of Actors Over Time")
+    plt.legend()
+    plt.savefig(output_filename)
+    plt.close()
 
 
 def gen_gephi_edges(movies_actors, output_filename):
@@ -80,6 +244,7 @@ def gen_gephi_edges(movies_actors, output_filename):
 
 
 def gen_gephi_id_label_popularity(actor_to_popularity, output_filename):
+    """Generate CSV file for Gephi to read in nodes."""
     with open(output_filename, mode="w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["Id", "Label", "Popularity"])
@@ -90,6 +255,7 @@ def gen_gephi_id_label_popularity(actor_to_popularity, output_filename):
 def gen_gephi_id_label_popularity_label_conditional_on_modularity_class(
     actor_to_popularity, actor_to_modularity_class, output_filename
 ):
+    """Generate CSV file for Gephi to read in nodes, but only label top 10 actors per modularity class for modularity classes with 1% or more of the total actors."""
     # Create Map from Modularity Class to List of (Actor, Popularity) Tuples
     modularity_class_to_actor_popularity_list = {}
     for actor, modularity_class in actor_to_modularity_class.items():

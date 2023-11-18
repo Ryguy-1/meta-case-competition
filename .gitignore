@@ -1,5 +1,3 @@
-# Ignore .data files
-*.data
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 # Python virtual environments
