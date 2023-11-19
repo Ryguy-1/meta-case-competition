@@ -1,9 +1,6 @@
 from langchain.llms.ollama import Ollama
 from langchain.schema import StrOutputParser
 from langchain.prompts import PromptTemplate
-from typing import List
-
-# abstract class for all llm models
 from abc import ABC, abstractmethod
 
 
@@ -19,7 +16,7 @@ class OllamaModel(ABC):
         """
         self.ollama_model_name = ollama_model_name
         self.llm = Ollama(
-            model=ollama_model_name, temperature=0.5
+            model=ollama_model_name, temperature=0
         )  # cold hearted, but still slight bit of randomness
 
     @abstractmethod
