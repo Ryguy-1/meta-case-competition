@@ -10,7 +10,7 @@ os.makedirs("generated", exist_ok=True)
 DATE_ADDED_COLUMN_NAME = "date_added"
 
 # Country
-COUNTRY = "India"
+COUNTRY = "Spain"
 
 
 def main():
