@@ -67,6 +67,13 @@ def main():
         "generated/most_common_country_for_each_color.png",
     )
 
+    gen_modularity_num_country_data(
+        actor_to_modularity,
+        movie_to_actors,
+        movie_to_production_countries,
+        "generated/modularity_to_count_per_country.json",
+    )
+
 
 def gen_modularity_color_country_data(
     modularity_to_color,
@@ -128,6 +135,42 @@ def gen_modularity_color_country_data(
     plt.tight_layout()
     plt.savefig(color_to_country_plot_filepath)
     plt.close()
+
+
+def gen_modularity_num_country_data(
+    actor_to_modularity,
+    movie_to_actors,
+    movie_to_production_countries,
+    modularity_to_num_countries_json_filepath,
+):
+    """Generate data for modularity raw value to number of countries."""
+    modularity_to_count_per_country = {}
+
+    for movie, actors in movie_to_actors.items():
+        # Get the set of modularities for the movie
+        movie_modularities = set(
+            actor_to_modularity[actor]
+            for actor in actors
+            if actor in actor_to_modularity
+        )
+
+        # Get the list of production countries for the movie
+        countries = movie_to_production_countries.get(movie, [])
+
+        # Update counts for each modularity and country
+        for modularity in movie_modularities:
+            if modularity not in modularity_to_count_per_country:
+                modularity_to_count_per_country[modularity] = {}
+            for country in countries:
+                modularity_to_count_per_country[modularity][country] = (
+                    modularity_to_count_per_country[modularity].get(country, 0) + 1
+                )
+
+    # Optionally, save the modularity to count per country map to a file
+    with open(modularity_to_num_countries_json_filepath, "w") as file:
+        json.dump(modularity_to_count_per_country, file, indent=4)
+
+    # Don't need to graph this one, just save file for reference.
 
 
 if __name__ == "__main__":
