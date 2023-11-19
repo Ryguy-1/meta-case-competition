@@ -1,6 +1,8 @@
 import pandas as pd
 import json
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def main():
@@ -10,7 +12,7 @@ def main():
     )
 
     modularity_to_color = {  # MODULARITY TO COLOR
-        row["modularity_class"]: row["color"]
+        row["modularity_class"]: row["Color"]
         for _, row in actor_to_modularitiy_and_color.iterrows()
     }
 
@@ -76,6 +78,32 @@ def main():
     # 2) Optionally, save the color to count per country map to a file
     with open("generated/color_to_count_per_country.json", "w") as file:
         json.dump(color_to_count_per_country, file, indent=4)
+
+    # 3) Print top country for each color
+    for color, country_to_count in color_to_count_per_country.items():
+        print(color, max(country_to_count, key=country_to_count.get))
+
+    # Make visualization of color to most common country (showing the actual colors on the graph is NECESSARY)
+    # Extracting the most common country for each color
+    color_to_most_common_country = {}
+    for color, country_to_count in color_to_count_per_country.items():
+        most_common_country = max(country_to_count, key=country_to_count.get)
+        color_to_most_common_country[color] = most_common_country
+
+    # Data for plotting
+    colors = list(color_to_most_common_country.keys())
+    countries = list(color_to_most_common_country.values())
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=colors, y=[1] * len(colors), palette=colors)
+    plt.xticks(range(len(countries)), countries, rotation=45)
+    plt.xlabel("Most Common Country")
+    plt.ylabel("Count (for visualization purposes)")
+    plt.title("Most Common Country for Each Color")
+    plt.tight_layout()
+    plt.savefig("generated/most_common_country_for_each_color.png")
+    plt.close()
 
 
 if __name__ == "__main__":
