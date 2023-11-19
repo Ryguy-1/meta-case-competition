@@ -2,9 +2,7 @@
 
 import pandas as pd
 from llm_utils import *
-from utils import *
 import os
-import geopandas as gpd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
@@ -107,7 +105,7 @@ def gen_num_per_country_over_time(data, output_filename):
     plt.ylabel("Number of Titles", fontsize=12)
     plt.title("Number of Netflix Titles per Country Over Time", fontsize=14)
     plt.tight_layout()
-    plt.savefig("generated/title_counts_by_country.png", bbox_inches="tight", dpi=300)
+    plt.savefig(output_filename, bbox_inches="tight", dpi=300)
 
 
 def gen_year_over_year_growth_bar_charts(data, output_folder):

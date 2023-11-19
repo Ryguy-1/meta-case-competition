@@ -14,6 +14,16 @@
         "Australia": 1,
         "India": 1
     },
+    "#699025": {
+        "Belgium": 11,
+        "France": 24,
+        "Thailand": 55,
+        "United States": 11,
+        "United Kingdom": 1,
+        "Canada": 2,
+        "Denmark": 1,
+        "Sweden": 1
+    },
     "#6e7aca": {
         "United Kingdom": 541,
         "United States": 2781,
@@ -94,16 +104,6 @@
         "Somalia": 1,
         "Sudan": 1,
         "East Germany": 1
-    },
-    "#699025": {
-        "Belgium": 11,
-        "France": 24,
-        "Thailand": 55,
-        "United States": 11,
-        "United Kingdom": 1,
-        "Canada": 2,
-        "Denmark": 1,
-        "Sweden": 1
     },
     "#5bc344": {
         "India": 937,
