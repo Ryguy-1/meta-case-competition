@@ -10,35 +10,37 @@ def main():
     actor_to_modularitiy_and_color = pd.read_csv(
         "data/gephi_10_modularities_colors.csv"
     )
+    netflix_data = pd.read_csv("data/netflix_titles.csv")
 
-    modularity_to_color = {  # MODULARITY TO COLOR
+    ##### Modularity to Color #####
+    modularity_to_color = {
         row["modularity_class"]: row["Color"]
         for _, row in actor_to_modularitiy_and_color.iterrows()
     }
 
+    ##### Actor to Modularity #####
     actor_to_modularity = {  # ACTOR TO MODULARITY
         row["Id"]: row["modularity_class"]
         for _, row in actor_to_modularitiy_and_color.iterrows()
     }
 
-    modularity_to_actors = {}  # MODULARITY TO ACTORS
+    ##### Modularity to Actors #####
+    modularity_to_actors = {}
     for actor, modularity in actor_to_modularity.items():
         if modularity not in modularity_to_actors:
             modularity_to_actors[modularity] = []
         modularity_to_actors[modularity].append(actor)
 
-    netflix_data = pd.read_csv("data/netflix_titles.csv")
-    movie_to_actors = {}  # MOVIE TO ACTORS
+    ##### Movie to Actors #####
+    movie_to_actors = {}
     for movie, actors in zip(netflix_data["title"], netflix_data["cast"]):
         if isinstance(actors, str):
             movie_to_actors[movie] = [x.strip() for x in actors.split(",")]
             continue
         movie_to_actors[movie] = []
 
-    movie_to_description = {  # MOVIE TO DESCRIPTION
-        row["title"]: row["description"] for _, row in netflix_data.iterrows()
-    }
-    movie_to_production_countries = {}  # MOVIE TO PRODUCTION COUNTRY
+    ##### Movie to Production Countries #####
+    movie_to_production_countries = {}
     for movie, country in zip(netflix_data["title"], netflix_data["country"]):
         if isinstance(country, str):
             movie_to_production_countries[movie] = [
@@ -47,7 +49,8 @@ def main():
             continue
         movie_to_production_countries[movie] = []
 
-    actors_to_movies = {}  # ACTOR TO MOVIES
+    ##### Actor to Movies #####
+    actors_to_movies = {}
     for movie, actors in movie_to_actors.items():
         for actor in actors:
             if actor not in actors_to_movies:
@@ -55,10 +58,27 @@ def main():
             actors_to_movies[actor].append(movie)
 
     ############################################
-    # 1) make map of each color to the countries of movies produced in that color (with the number of movies produced in that color per country)
+    gen_modularity_color_country_data(
+        modularity_to_color,
+        actor_to_modularity,
+        movie_to_actors,
+        movie_to_production_countries,
+        "generated/color_to_count_per_country.json",
+        "generated/most_common_country_for_each_color.png",
+    )
+
+
+def gen_modularity_color_country_data(
+    modularity_to_color,
+    actor_to_modularity,
+    movie_to_actors,
+    movie_to_production_countries,
+    color_to_countries_json_filepath,
+    color_to_country_plot_filepath,
+):
+    """Generate data for modularity to color to country."""
     color_to_count_per_country = {}
 
-    # Populate color_to_count_per_country
     for movie, actors in movie_to_actors.items():
         # Get the set of colors for the movie
         movie_colors = set(
@@ -80,7 +100,7 @@ def main():
                 )
 
     # 2) Optionally, save the color to count per country map to a file
-    with open("generated/color_to_count_per_country.json", "w") as file:
+    with open(color_to_countries_json_filepath, "w") as file:
         json.dump(color_to_count_per_country, file, indent=4)
 
     # 3) Print top country for each color
@@ -106,7 +126,7 @@ def main():
     plt.ylabel("Count (for visualization purposes)")
     plt.title("Most Common Country for Each Color")
     plt.tight_layout()
-    plt.savefig("generated/most_common_country_for_each_color.png")
+    plt.savefig(color_to_country_plot_filepath)
     plt.close()
 
 

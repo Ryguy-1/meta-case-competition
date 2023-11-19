@@ -3,6 +3,7 @@ import os
 import math
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
 
 
 def main():
@@ -11,14 +12,16 @@ def main():
     if not os.path.exists("generated/col_4_gephi_cast_edges.csv"):
         print("Please generate the gephi cast edges file first.")
         return
-    print(
-        calculate_isolation_metric(
-            pd.read_csv(communities_path), pd.read_csv(edges_path)
-        )
+    isolation_metrics = calculate_isolation_metric(
+        pd.read_csv(communities_path), pd.read_csv(edges_path)
     )
-    ##### Generate Graph of Relative Isolation Metric Per Country #####
-    modularity_class_to_country = {}
 
+    ##### Generate Graph of Isolation Metric Per Country #####
+    print(isolation_metrics)
+    modularity_classes_to_country_names = {
+        186: ""
+    }
+    
 
 def calculate_isolation_metric(modularities_df, edges_df):
     """
