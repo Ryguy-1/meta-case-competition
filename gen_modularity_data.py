@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import math
 
+os.makedirs("generated", exist_ok=True)
+
 
 def main():
-    os.makedirs("generated", exist_ok=True)
     actor_to_modularitiy_and_color = pd.read_csv(
         "data/gephi_10_modularities_colors.csv"
     )
