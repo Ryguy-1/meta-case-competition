@@ -23,6 +23,9 @@ def main():
     gen_num_per_country_over_time(
         data=netflix_data, output_filename="generated/title_counts_by_country.png"
     )
+    output_folder = "generated/bar_charts"
+    os.makedirs(output_folder, exist_ok=True)
+    gen_year_over_year_growth_bar_charts(data=netflix_data, output_folder=output_folder)
 
 
 def gen_num_per_country_over_time(data, output_filename):
@@ -105,6 +108,76 @@ def gen_num_per_country_over_time(data, output_filename):
     plt.title("Number of Netflix Titles per Country Over Time", fontsize=14)
     plt.tight_layout()
     plt.savefig("generated/title_counts_by_country.png", bbox_inches="tight", dpi=300)
+
+
+def gen_year_over_year_growth_bar_charts(data, output_folder):
+    # Preprocessing the data
+    data["country"] = data["country"].dropna().apply(lambda x: x.strip())
+    netflix_data_expanded = data.drop("country", axis=1).join(
+        data["country"]
+        .str.split(",", expand=True)
+        .stack()
+        .reset_index(level=1, drop=True)
+        .rename("country")
+    )
+    netflix_data_expanded["country"] = (
+        netflix_data_expanded["country"].str.strip().str.title()
+    )
+    netflix_data_expanded["year_added"] = pd.to_datetime(
+        netflix_data_expanded["date_added"], errors="coerce"
+    ).dt.year
+    netflix_data_expanded = netflix_data_expanded.dropna(subset=["year_added"])
+    netflix_data_expanded["year_added"] = netflix_data_expanded["year_added"].astype(
+        int
+    )
+
+    # Counting titles per country per year
+    titles_per_country_year = (
+        netflix_data_expanded.groupby(["country", "year_added"])
+        .size()
+        .reset_index(name="number_of_titles")
+    )
+
+    # Identifying top 10 countries
+    total_titles_per_country = titles_per_country_year.groupby("country")[
+        "number_of_titles"
+    ].sum()
+    top_countries = (
+        total_titles_per_country.sort_values(ascending=False).head(10).index.tolist()
+    )
+
+    # Generating bar charts for each top country
+    for country in top_countries:
+        country_data = titles_per_country_year[
+            titles_per_country_year["country"] == country
+        ]
+        # Calculate year-over-year growth rate
+        country_data["growth_rate"] = (
+            country_data["number_of_titles"].pct_change() * 100
+        )
+
+        # Setting up the plot
+        plt.figure(figsize=(10, 6), dpi=120)
+        sns.barplot(
+            x="year_added", y="growth_rate", data=country_data, palette="viridis"
+        )
+
+        # Customizing the plot
+        plt.title(
+            f"Year-over-Year Growth Rate in Number of Titles for {country}", fontsize=14
+        )
+        plt.xlabel("Year", fontsize=12)
+        plt.ylabel("Growth Rate (%)", fontsize=12)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        # Saving each plot
+        plt.savefig(
+            os.path.join(output_folder, f"{country}_growth.png"),
+            bbox_inches="tight",
+            dpi=300,
+        )
+        plt.close()
 
 
 if __name__ == "__main__":

@@ -90,6 +90,7 @@ def main():
         actor_to_gender=actor_to_gender,
         output_filename="generated/col_4_gender_of_actor_over_time.png",
     )
+    generate_top_cast_graph(movies_actors, "generated/top_10_cast_members.png")
 
     ##### GENERATE GEPHI CSV FILES #####
     gen_gephi_edges(
@@ -221,6 +222,32 @@ def gen_actor_gender_over_time(netflix_data, actor_to_gender, output_filename):
     plt.ylabel("Count of Actors")
     plt.title("Gender Distribution of Actors Over Time")
     plt.legend()
+    plt.savefig(output_filename)
+    plt.close()
+
+
+def generate_top_cast_graph(movies_actors, output_filename):
+    """Generate a graph for the 10 most used cast members."""
+    # Count the frequency of each actor
+    actor_frequency = {}
+    for cast in movies_actors.values():
+        for actor in cast:
+            if actor not in actor_frequency:
+                actor_frequency[actor] = 0
+            actor_frequency[actor] += 1
+
+    # Sort and select the top 10 actors
+    top_actors = sorted(actor_frequency.items(), key=lambda x: x[1], reverse=True)[:10]
+    actors, frequencies = zip(*top_actors)
+
+    # Plot
+    sns.set_theme(style="whitegrid")
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=list(frequencies), y=list(actors))
+    plt.xlabel("Number of Appearances")
+    plt.ylabel("Actors")
+    plt.title("Top 10 Most Used Cast Members on Netflix")
+    plt.tight_layout()
     plt.savefig(output_filename)
     plt.close()
 
