@@ -38,12 +38,14 @@ def main():
     movie_to_description = {  # MOVIE TO DESCRIPTION
         row["title"]: row["description"] for _, row in netflix_data.iterrows()
     }
-    movie_to_production_country = {}  # MOVIE TO PRODUCTION COUNTRY
+    movie_to_production_countries = {}  # MOVIE TO PRODUCTION COUNTRY
     for movie, country in zip(netflix_data["title"], netflix_data["country"]):
         if isinstance(country, str):
-            movie_to_production_country[movie] = country
+            movie_to_production_countries[movie] = [
+                x.strip() for x in country.split(",")
+            ]
             continue
-        movie_to_production_country[movie] = ""
+        movie_to_production_countries[movie] = []
 
     actors_to_movies = {}  # ACTOR TO MOVIES
     for movie, actors in movie_to_actors.items():
@@ -56,24 +58,26 @@ def main():
     # 1) make map of each color to the countries of movies produced in that color (with the number of movies produced in that color per country)
     color_to_count_per_country = {}
 
-    # Iterate over each movie and its production country
-    for movie, country in movie_to_production_country.items():
-        # Get the modularity class of the movie based on its actors
-        modularity_classes = set(
-            actor_to_modularity[actor] for actor in movie_to_actors.get(movie, [])
+    # Populate color_to_count_per_country
+    for movie, actors in movie_to_actors.items():
+        # Get the set of colors for the movie
+        movie_colors = set(
+            modularity_to_color[actor_to_modularity[actor]]
+            for actor in actors
+            if actor in actor_to_modularity
         )
 
-        # For each modularity class, update the count in the color to country map
-        for modularity in modularity_classes:
-            color = modularity_to_color.get(modularity)
+        # Get the list of production countries for the movie
+        countries = movie_to_production_countries.get(movie, [])
 
+        # Update counts for each color and country
+        for color in movie_colors:
             if color not in color_to_count_per_country:
                 color_to_count_per_country[color] = {}
-
-            if country not in color_to_count_per_country[color]:
-                color_to_count_per_country[color][country] = 0
-
-            color_to_count_per_country[color][country] += 1
+            for country in countries:
+                color_to_count_per_country[color][country] = (
+                    color_to_count_per_country[color].get(country, 0) + 1
+                )
 
     # 2) Optionally, save the color to count per country map to a file
     with open("generated/color_to_count_per_country.json", "w") as file:
