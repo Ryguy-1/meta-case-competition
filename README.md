@@ -4,4 +4,9 @@ actors vs viewership
 
 actors working together =? viewers watching together?
 
-Goal: we want the best country to launch in. 1) low competition 2) future growth to other countries 3) loyal customers / high paying 4) low cost of entry to gain high market share (market share/cost = HIGH)
+Goal: we want the best country to launch in.
+
+1. low competition
+1. future growth to other countries
+1. loyal customers / high paying
+1. low cost of entry to gain high market share (market share/cost = HIGH)
