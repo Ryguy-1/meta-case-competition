@@ -286,9 +286,9 @@ def gen_color_to_isolation_metric_data(
 
     plt.figure(figsize=(10, 6))
     sns.barplot(x=colors, y=isolation_metrics, palette=colors)
-    plt.xlabel("Color")
-    plt.ylabel("Isolation Metric")
-    plt.title("Isolation Metric for Each Color")
+    plt.xlabel("Color Code")
+    plt.ylabel("Relative Isolation Metric")
+    plt.title("Relative Isolation of Each Color (Higher = More Isolated)")
     plt.tight_layout()
     plt.savefig(color_to_isolation_metric_plot_filepath)
     plt.close()
