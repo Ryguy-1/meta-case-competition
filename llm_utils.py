@@ -23,7 +23,7 @@ class OllamaModel(object):
             template="""
                 The description list is: "{inst}"
 
-                You are an AI designed to output a single phrase and no more.
+                You are an AI assistant designed to output a single phrase and no more.
                 You are part of a code pipeline, and any output will be used downstream as written.
                 You must not output anything but your final answer as other parts of the pipeline rely on only the answer you write.
                 You will be a trusted and reliable part of this pipeline sticking to what you are told.

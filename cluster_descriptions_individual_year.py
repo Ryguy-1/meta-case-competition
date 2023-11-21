@@ -43,7 +43,7 @@ def main() -> None:
     embeddings = model.encode(overviews, show_progress_bar=True)
 
     # Clustering
-    num_clusters = 35  # Adjust as needed
+    num_clusters = 20  # Adjust as needed
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     cluster_labels = kmeans.fit_predict(embeddings)
 
