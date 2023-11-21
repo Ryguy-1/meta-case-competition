@@ -167,6 +167,36 @@ def main() -> None:
         "generated/cluster_individual_month_year_global.html"
     )  # Updated file name
 
+    ######################### CREATE GRAPH OF YEAR OVER YEAR CHANGES IN CATEGORY #########################
+    # Description: x-axis -> bar for every category, y-axis -> month over month growth in number of titles.
+    # Note: should be animated over time (month over month).
+
+    # Calculate month-over-month growth in the number of titles for each category
+    category_growth_df = cumulative_vis_df.groupby(['month_year_added', 'categories']).size().unstack(fill_value=0)
+    month_over_month_growth = category_growth_df.diff().fillna(0)
+
+    # Prepare data for the animated bar chart
+    bar_chart_data = month_over_month_growth.stack().reset_index(name='growth')
+    bar_chart_data.rename(columns={'categories': 'category', 'month_year_added': 'date'}, inplace=True)
+
+    # Animated Bar Chart Visualization
+    bar_fig = px.bar(
+        bar_chart_data,
+        x='category',
+        y='growth',
+        animation_frame='date',
+        range_y=[bar_chart_data.growth.min(), bar_chart_data.growth.max()],
+        title="Year Over Year Changes in Netflix Catalog Categories",
+        labels={"date": "Date", "growth": "Growth in Number of Titles"}
+    )
+
+    bar_fig.update_layout(showlegend=False)
+    bar_fig.show()
+
+    # Optional: Save the animation as HTML
+    bar_fig.write_html("generated/category_growth_month_over_month.html")
+
+
 
 if __name__ == "__main__":
     main()
