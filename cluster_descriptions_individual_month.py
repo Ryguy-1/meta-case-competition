@@ -110,6 +110,14 @@ def main() -> None:
         data["movie_titles"] = np.append(data["movie_titles"], dummy_title)
         data["month_year_added"] = np.append(data["month_year_added"], dummy_month_year)
 
+    # Create a consistent color palette for categories
+    unique_categories = sorted(set(data["categories"]))
+    color_palette = px.colors.qualitative.Plotly
+    category_colors = {
+        cat: color_palette[i % len(color_palette)]
+        for i, cat in enumerate(unique_categories)
+    }
+
     vis_df = pd.DataFrame(data)
 
     # Convert 'month_year_added' to Period object for filtering and sorting
@@ -148,13 +156,13 @@ def main() -> None:
         cumulative_vis_df,
         x="x",
         y="y",
-        animation_frame="month_year_added",  # Updated to reflect month-year
+        animation_frame="month_year_added",
         color="categories",
         hover_name="movie_titles",
         hover_data=["categories"],
         title="Evolution of Netflix Global Catalog",
-        labels={"month_year_added": "Date Added to Netflix"},  # Updated label
-        # size_max=100,  # Adjust the maximum size of bubbles
+        labels={"month_year_added": "Date Added to Netflix"},
+        color_discrete_map=category_colors,  # Apply consistent color mapping
     )
 
     fig.update_xaxes(title_text="Similarity Metric 1")
@@ -194,6 +202,8 @@ def main() -> None:
         range_y=[bar_chart_data.growth.min(), bar_chart_data.growth.max()],
         title="Month Over Month Changes in Netflix Catalog Categories",
         labels={"date": "Date", "growth": "Growth in Number of Titles"},
+        color="category",
+        color_discrete_map=category_colors,  # Apply consistent color mapping
     )
 
     bar_fig.update_layout(showlegend=False)
@@ -210,40 +220,32 @@ def main() -> None:
         .reset_index(name="number_of_movies")
     )
 
-    # Sort and prepare data for each month-year for the animation
-    sorted_dfs = []
-    for period in category_count_per_month["month_year_added"].unique():
-        period_df = category_count_per_month[
-            category_count_per_month["month_year_added"] == period
-        ]
-        period_df = period_df.sort_values(by="number_of_movies", ascending=False)
-        sorted_dfs.append(period_df)
+    # Prepare data for the animation
+    # Instead of sorting, just concatenate the DataFrames for each period
+    animated_df = category_count_per_month.copy()
 
-    # Concatenate sorted DataFrames
-    animated_df = pd.concat(sorted_dfs)
-
-    # Animated Bar Chart Visualization with dynamic sorting in each frame
+    # Animated Bar Chart Visualization without dynamic sorting in each frame
     animated_category_fig = px.bar(
         animated_df,
         x="categories",
         y="number_of_movies",
         animation_frame="month_year_added",
         range_y=[0, animated_df.number_of_movies.max()],
-        title="Number of Movies in Each Category by Month (Dynamically Sorted)",
+        title="Number of Movies in Each Category by Month",
         labels={
             "categories": "Category",
             "number_of_movies": "Number of Movies",
             "month_year_added": "Month-Year",
         },
+        color="categories",
+        color_discrete_map=category_colors,  # Apply consistent color mapping
     )
 
     animated_category_fig.update_layout(showlegend=True)
     animated_category_fig.show()
 
     # Optional: Save the animation as HTML
-    animated_category_fig.write_html(
-        "generated/category_movie_count_by_month_dynamic_sort.html"
-    )
+    animated_category_fig.write_html("generated/category_movie_count_by_month.html")
 
 
 if __name__ == "__main__":
