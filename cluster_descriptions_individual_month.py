@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from llm_utils import OllamaModel
+from openai_summarizer import predict_movie_category
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 import plotly.express as px
 from tqdm import tqdm
 import torch
 import json
-import time
+import os
 
 
 def main() -> None:
@@ -34,7 +34,11 @@ def main() -> None:
     overviews = []
     titles = []
     for key, data in movie_data.items():
-        if "overview" not in data:
+        if (
+            "overview" not in data
+            or data["overview"] is None
+            or len(data["overview"]) == 0
+        ):
             continue
         overviews.append(data["overview"])
         titles.append(key)
@@ -44,7 +48,7 @@ def main() -> None:
     embeddings = model.encode(overviews, show_progress_bar=True)
 
     # Clustering
-    num_clusters = 5  # Adjust as needed
+    num_clusters = 50  # Adjust as needed
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     cluster_labels = kmeans.fit_predict(embeddings)
 
@@ -57,19 +61,29 @@ def main() -> None:
     for title, cluster, overview in zip(titles, cluster_labels, overviews):
         title_to_cluster[title] = {"cluster": str(cluster), "overview": overview}
 
-    ollama_model = OllamaModel(ollama_model_name="mistral-openorca", temperature=0)
-
-    # Predict cluster category
+    # Get cluster category
     cluster_to_category = {}
-    for cluster in tqdm(range(num_clusters), desc="Predicting cluster categories"):
-        cluster_overviews = [
-            title_to_cluster[title]["overview"]
-            for title in title_to_cluster
-            if title_to_cluster[title]["cluster"] == str(cluster)
-        ]
-        cluster_category = ollama_model.run(cluster_overviews)
-        cluster_to_category[str(cluster)] = cluster_category
-        print(f"Cluster Number: {cluster}, Category: {cluster_category}")
+    cluster_category_file_path = f"generated/cluster_to_category_{num_clusters}.json"
+    if not os.path.exists(cluster_category_file_path):
+        for cluster in tqdm(range(num_clusters), desc="Predicting cluster categories"):
+            cluster_overviews = [
+                title_to_cluster[title]["overview"]
+                for title in title_to_cluster
+                if title_to_cluster[title]["cluster"] == str(cluster)
+            ][
+                :30
+            ]  # only first 30 for openai
+            cluster_category = predict_movie_category(cluster_overviews)
+            cluster_to_category[str(cluster)] = cluster_category
+            print(f"Cluster Number: {cluster}, Category: {cluster_category}")
+
+        # Save cluster_to_category to a JSON file
+        with open(cluster_category_file_path, "w") as f:
+            json.dump(cluster_to_category, f, indent=4)
+    else:
+        # Load cluster_to_category from the existing JSON file
+        with open(cluster_category_file_path, "r") as f:
+            cluster_to_category = json.load(f)
 
     print(cluster_to_category)
 
@@ -143,6 +157,8 @@ def main() -> None:
         # size_max=100,  # Adjust the maximum size of bubbles
     )
 
+    fig.update_xaxes(title_text="Similarity Metric 1")
+    fig.update_yaxes(title_text="Similarity Metric 2")
     fig.update_layout(showlegend=True)
     fig.show()
 

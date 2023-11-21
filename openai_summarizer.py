@@ -8,6 +8,8 @@ client = OpenAI(api_key=config["openai_api_key"])
 
 def predict_movie_category(movie_descriptions: List[str]) -> str:
     """Predict the category of a list of movie descriptions."""
+    if len(movie_descriptions) == 0:
+        raise ValueError("movie descriptions length == 0 when called openai")
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-1106",
         messages=[
@@ -23,7 +25,7 @@ def predict_movie_category(movie_descriptions: List[str]) -> str:
             },
             {
                 "role": "user",
-                "content": str(movie_descriptions),
+                "content": f"Description List: {movie_descriptions}",
             },
         ],
         temperature=0.2,  # more deterministic

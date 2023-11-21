@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from llm_utils import OllamaModel
+from openai_summarizer import predict_movie_category
 from sklearn.cluster import KMeans
 from sklearn.manifold import TSNE
 import plotly.express as px
 from tqdm import tqdm
 import torch
 import json
-import time
+import os
 
 
 def main() -> None:
@@ -43,7 +43,7 @@ def main() -> None:
     embeddings = model.encode(overviews, show_progress_bar=True)
 
     # Clustering
-    num_clusters = 25  # Adjust as needed
+    num_clusters = 20  # Adjust as needed
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     cluster_labels = kmeans.fit_predict(embeddings)
 
@@ -56,19 +56,30 @@ def main() -> None:
     for title, cluster, overview in zip(titles, cluster_labels, overviews):
         title_to_cluster[title] = {"cluster": str(cluster), "overview": overview}
 
-    ollama_model = OllamaModel(ollama_model_name="mistral-openorca", temperature=0)
-
-    # Predict cluster category
+    # Get cluster category
     cluster_to_category = {}
-    for cluster in tqdm(range(num_clusters), desc="Predicting cluster categories"):
-        cluster_overviews = [
-            title_to_cluster[title]["overview"]
-            for title in title_to_cluster
-            if title_to_cluster[title]["cluster"] == str(cluster)
-        ]
-        cluster_category = ollama_model.run(cluster_overviews)
-        cluster_to_category[str(cluster)] = cluster_category
-        print(f"Cluster Number: {cluster}, Category: {cluster_category}")
+    cluster_category_file_path = f"generated/cluster_to_category_{num_clusters}.json"
+    if not os.path.exists(cluster_category_file_path):
+        for cluster in tqdm(range(num_clusters), desc="Predicting cluster categories"):
+            cluster_overviews = [
+                title_to_cluster[title]["overview"]
+                for title in title_to_cluster
+                if title_to_cluster[title]["cluster"] == str(cluster)
+            ][:30]
+            cluster_category = predict_movie_category(cluster_overviews)
+            # cluster_category = ollama_model.run(cluster_overviews)
+            cluster_to_category[str(cluster)] = cluster_category
+            print(f"Cluster Number: {cluster}, Category: {cluster_category}")
+
+        # Save cluster_to_category to a JSON file
+        with open(cluster_category_file_path, "w") as f:
+            json.dump(cluster_to_category, f)
+    else:
+        # Load cluster_to_category from the existing JSON file
+        with open(cluster_category_file_path, "r") as f:
+            cluster_to_category = json.load(f)
+
+    print(cluster_to_category)
 
     ############################ PREPARE DATA FOR PLOTTING ############################
     # Data for visualization
@@ -81,6 +92,17 @@ def main() -> None:
             netflix_titles_to_years.get(title) for title in titles
         ],  # Map titles to years
     }
+    # Add Single Dummy Data in Each Category for First Month in Center of Respective Cluster
+    dummy_year = 2016
+    for cluster in range(num_clusters):
+        category = cluster_to_category[str(cluster)]
+        dummy_title = f"Cluster {cluster} Center"
+        data["x"] = np.append(data["x"], 0)
+        data["y"] = np.append(data["y"], 0)
+        data["categories"] = np.append(data["categories"], category)
+        data["movie_titles"] = np.append(data["movie_titles"], dummy_title)
+        data["year_added"] = np.append(data["year_added"], dummy_year)
+
     vis_df = pd.DataFrame(data)
     vis_df = vis_df[vis_df["year_added"] >= 2016]  # Filter data from 2016 onwards
 
