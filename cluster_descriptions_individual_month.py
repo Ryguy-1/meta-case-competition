@@ -167,27 +167,33 @@ def main() -> None:
         "generated/cluster_individual_month_year_global.html"
     )  # Updated file name
 
-    ######################### CREATE GRAPH OF YEAR OVER YEAR CHANGES IN CATEGORY #########################
+    ######################### CREATE GRAPH OF MONTH OVER MONTH CHANGES IN CATEGORY #########################
     # Description: x-axis -> bar for every category, y-axis -> month over month growth in number of titles.
     # Note: should be animated over time (month over month).
 
     # Calculate month-over-month growth in the number of titles for each category
-    category_growth_df = cumulative_vis_df.groupby(['month_year_added', 'categories']).size().unstack(fill_value=0)
+    category_growth_df = (
+        cumulative_vis_df.groupby(["month_year_added", "categories"])
+        .size()
+        .unstack(fill_value=0)
+    )
     month_over_month_growth = category_growth_df.diff().fillna(0)
 
     # Prepare data for the animated bar chart
-    bar_chart_data = month_over_month_growth.stack().reset_index(name='growth')
-    bar_chart_data.rename(columns={'categories': 'category', 'month_year_added': 'date'}, inplace=True)
+    bar_chart_data = month_over_month_growth.stack().reset_index(name="growth")
+    bar_chart_data.rename(
+        columns={"categories": "category", "month_year_added": "date"}, inplace=True
+    )
 
     # Animated Bar Chart Visualization
     bar_fig = px.bar(
         bar_chart_data,
-        x='category',
-        y='growth',
-        animation_frame='date',
+        x="category",
+        y="growth",
+        animation_frame="date",
         range_y=[bar_chart_data.growth.min(), bar_chart_data.growth.max()],
-        title="Year Over Year Changes in Netflix Catalog Categories",
-        labels={"date": "Date", "growth": "Growth in Number of Titles"}
+        title="Month Over Month Changes in Netflix Catalog Categories",
+        labels={"date": "Date", "growth": "Growth in Number of Titles"},
     )
 
     bar_fig.update_layout(showlegend=False)
@@ -196,6 +202,48 @@ def main() -> None:
     # Optional: Save the animation as HTML
     bar_fig.write_html("generated/category_growth_month_over_month.html")
 
+    ######################### CREATE GRAPH OF NUMBER OF MOVIES IN EACH CATEGORY EACH MONTH #########################
+    # Since 'cumulative_vis_df' is already cumulative, directly use it for grouping
+    category_count_per_month = (
+        cumulative_vis_df.groupby(["month_year_added", "categories"])
+        .size()
+        .reset_index(name="number_of_movies")
+    )
+
+    # Sort and prepare data for each month-year for the animation
+    sorted_dfs = []
+    for period in category_count_per_month["month_year_added"].unique():
+        period_df = category_count_per_month[
+            category_count_per_month["month_year_added"] == period
+        ]
+        period_df = period_df.sort_values(by="number_of_movies", ascending=False)
+        sorted_dfs.append(period_df)
+
+    # Concatenate sorted DataFrames
+    animated_df = pd.concat(sorted_dfs)
+
+    # Animated Bar Chart Visualization with dynamic sorting in each frame
+    animated_category_fig = px.bar(
+        animated_df,
+        x="categories",
+        y="number_of_movies",
+        animation_frame="month_year_added",
+        range_y=[0, animated_df.number_of_movies.max()],
+        title="Number of Movies in Each Category by Month (Dynamically Sorted)",
+        labels={
+            "categories": "Category",
+            "number_of_movies": "Number of Movies",
+            "month_year_added": "Month-Year",
+        },
+    )
+
+    animated_category_fig.update_layout(showlegend=True)
+    animated_category_fig.show()
+
+    # Optional: Save the animation as HTML
+    animated_category_fig.write_html(
+        "generated/category_movie_count_by_month_dynamic_sort.html"
+    )
 
 
 if __name__ == "__main__":
