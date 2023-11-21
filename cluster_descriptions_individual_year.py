@@ -43,7 +43,7 @@ def main() -> None:
     embeddings = model.encode(overviews, show_progress_bar=True)
 
     # Clustering
-    num_clusters = 25  # Adjust as needed
+    num_clusters = 35  # Adjust as needed
     kmeans = KMeans(n_clusters=num_clusters, random_state=42)
     cluster_labels = kmeans.fit_predict(embeddings)
 
@@ -83,45 +83,38 @@ def main() -> None:
     }
     vis_df = pd.DataFrame(data)
     vis_df = vis_df[vis_df["year_added"] >= 2016]  # Filter data from 2016 onwards
+    vis_df.sort_values(by="year_added", inplace=True)  # Sort by year
 
-    # Group by category and year_added, then calculate mean coordinates and count
-    grouped_df = (
-        vis_df.groupby(["categories", "year_added"])
-        .agg({"x": "mean", "y": "mean", "movie_titles": "count"})
-        .reset_index()
-    )
-
-    # Making the counts cumulative
-    grouped_df["cumulative_count"] = grouped_df.groupby(["categories"])[
-        "movie_titles"
-    ].cumsum()
+    # Make the dataset cumulative
+    cumulative_dfs = []
+    for year in range(2016, int(vis_df["year_added"].max()) + 1):
+        yearly_df = vis_df[vis_df["year_added"] <= year].copy()
+        yearly_df[
+            "year_added"
+        ] = year  # Set all years to the current year for animation frame
+        cumulative_dfs.append(yearly_df)
+    cumulative_vis_df = pd.concat(cumulative_dfs)
 
     ############################ CREATE ANIMATED PLOT ############################
-    # Animated Visualization
+    # Animated Visualization for individual points
     fig = px.scatter(
-        grouped_df,
+        cumulative_vis_df,
         x="x",
         y="y",
         animation_frame="year_added",
-        size="cumulative_count",  # Use cumulative count for bubble size
         color="categories",
-        text="categories",  # Display category text
+        hover_name="movie_titles",
+        hover_data=["categories"],
         title="Evolution of Netflix Global Catalog",
-        labels={
-            "year_added": "Year Added to Netflix",
-            "cumulative_count": "Cumulative Number of Movies",
-        },
+        labels={"year_added": "Year Added to Netflix"},
         size_max=100,  # Adjust the maximum size of bubbles
     )
-
-    # Update layout to display category labels in the center of bubbles
-    fig.update_traces(textposition="middle center")
 
     fig.update_layout(showlegend=True)
     fig.show()
 
     # Optional: Save the animation as HTML or capture it as a video/gif
-    fig.write_html("generated/cluster_global_year.html")
+    fig.write_html("generated/cluster_individual_year_global.html")
 
 
 if __name__ == "__main__":

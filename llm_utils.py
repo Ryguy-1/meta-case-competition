@@ -23,14 +23,19 @@ class OllamaModel(object):
             template="""
                 The description list is: "{inst}"
 
-                You are a helpful assistant designed to output a single category and no more.
+                You are an AI designed to output a single phrase and no more.
                 You are part of a code pipeline, and any output will be used downstream as written.
                 You must not output anything but your final answer as other parts of the pipeline rely on only the answer you write.
                 You will be a trusted and reliable part of this pipeline sticking to what you are told.
-                You will be given a list of movie descriptions, and you must output the category that these descriptions collectively belong to by identifying similarities between them.
-                The category should be a short phrase describing the general theme of the movies in a few words.
+                You will be given a list of movie descriptions, and you must output a phrase that all of them share by identifying similarities between them.
+                The category should be a short phrase describing the general theme of the movies.
+                Remember to only output your final phrase.
+                Output nothing but your final phrase.
+                All you should output is your final phrase.
+                You must be reliable or the pipeline will break.
+                Your output should be short and concise.
 
-                Your final genre phrase output is: """,
+                Your final phrase is: """,
         )
         chain = write_template | self.llm | StrOutputParser()
         output = chain.invoke({"inst": str(items_list)})
