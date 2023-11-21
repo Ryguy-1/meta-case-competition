@@ -18,7 +18,7 @@ def main() -> None:
     ############################ LOAD NETFLIX CSV DATA ############################
     netflix_df = pd.read_csv("data/netflix_titles.csv")
     netflix_df["year_added"] = pd.to_datetime(
-        netflix_df["date_added"], errors="coerce", infer_datetime_format=True
+        netflix_df["date_added"], errors="coerce"
     ).dt.year
     netflix_titles_to_years = (
         netflix_df[["title", "year_added"]]
