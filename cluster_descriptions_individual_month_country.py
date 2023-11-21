@@ -131,12 +131,20 @@ def main() -> None:
     dummy_month_year = "2016-01"
     for cluster in range(num_clusters):
         category = cluster_to_category[str(cluster)]
-        dummy_title = f"Cluster {cluster} Center"
+        dummy_title = f"Ignore-0-0-{cluster}"
         data["x"] = np.append(data["x"], 0)
         data["y"] = np.append(data["y"], 0)
         data["categories"] = np.append(data["categories"], category)
         data["movie_titles"] = np.append(data["movie_titles"], dummy_title)
         data["month_year_added"] = np.append(data["month_year_added"], dummy_month_year)
+
+    # Create a consistent color palette for categories
+    unique_categories = sorted(set(data["categories"]))
+    color_palette = px.colors.qualitative.Plotly
+    category_colors = {
+        cat: color_palette[i % len(color_palette)]
+        for i, cat in enumerate(unique_categories)
+    }
 
     vis_df = pd.DataFrame(data)
 
@@ -176,17 +184,19 @@ def main() -> None:
         cumulative_vis_df,
         x="x",
         y="y",
-        animation_frame="month_year_added",  # Updated to reflect month-year
+        animation_frame="month_year_added",
         color="categories",
         hover_name="movie_titles",
         hover_data=["categories"],
         title="Evolution of Netflix Global Catalog",
-        labels={"month_year_added": "Date Added to Netflix"},  # Updated label
-        # size_max=100,  # Adjust the maximum size of bubbles
+        labels={"month_year_added": "Date Added to Netflix"},
+        color_discrete_map=category_colors,  # Apply consistent color mapping
     )
 
     fig.update_xaxes(title_text="Similarity Metric 1")
     fig.update_yaxes(title_text="Similarity Metric 2")
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
     fig.update_layout(showlegend=True)
     fig.show()
 
@@ -195,7 +205,7 @@ def main() -> None:
         f"generated/cluster_individual_month_year_{COUNTRY}.html"
     )  # Updated file name
 
-    ######################### CREATE GRAPH OF YEAR OVER YEAR CHANGES IN CATEGORY #########################
+    ######################### CREATE GRAPH OF MONTH OVER MONTH CHANGES IN CATEGORY #########################
     # Description: x-axis -> bar for every category, y-axis -> month over month growth in number of titles.
     # Note: should be animated over time (month over month).
 
@@ -220,15 +230,61 @@ def main() -> None:
         y="growth",
         animation_frame="date",
         range_y=[bar_chart_data.growth.min(), bar_chart_data.growth.max()],
-        title="Year Over Year Changes in Netflix Catalog Categories",
+        title="Month Over Month Changes in Netflix Catalog Categories",
         labels={"date": "Date", "growth": "Growth in Number of Titles"},
+        color="category",
+        color_discrete_map=category_colors,  # Apply consistent color mapping
     )
 
     bar_fig.update_layout(showlegend=False)
+    bar_fig.update_xaxes(showgrid=False)
+    bar_fig.update_yaxes(showgrid=False)
     bar_fig.show()
 
     # Optional: Save the animation as HTML
     bar_fig.write_html(f"generated/category_growth_month_over_month_{COUNTRY}.html")
+
+    ######################### CREATE GRAPH OF NUMBER OF MOVIES IN EACH CATEGORY EACH MONTH #########################
+    # Since 'cumulative_vis_df' is already cumulative, directly use it for grouping
+    category_count_per_month = (
+        cumulative_vis_df.groupby(["month_year_added", "categories"])
+        .size()
+        .reset_index(name="number_of_movies")
+    )
+
+    # Prepare data for the animation
+    # Instead of sorting, just concatenate the DataFrames for each period
+    animated_df = category_count_per_month.copy()
+
+    # Animated Bar Chart Visualization without dynamic sorting in each frame
+    animated_category_fig = px.bar(
+        animated_df,
+        x="categories",
+        y="number_of_movies",
+        animation_frame="month_year_added",
+        range_y=[
+            1,
+            animated_df.number_of_movies.max(),
+        ],  # CHANGED THIS TO 1 <------------------- FOR DUMMY DATA LMAO
+        title="Number of Movies in Each Category by Month",
+        labels={
+            "categories": "Category",
+            "number_of_movies": "Number of Movies",
+            "month_year_added": "Month-Year",
+        },
+        color="categories",
+        color_discrete_map=category_colors,  # Apply consistent color mapping
+    )
+
+    animated_category_fig.update_layout(showlegend=True)
+    animated_category_fig.update_xaxes(showgrid=False)
+    animated_category_fig.update_yaxes(showgrid=False)
+    animated_category_fig.show()
+
+    # Optional: Save the animation as HTML
+    animated_category_fig.write_html(
+        f"generated/category_movie_count_by_month_{COUNTRY}.html"
+    )
 
 
 if __name__ == "__main__":

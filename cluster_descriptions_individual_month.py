@@ -103,7 +103,7 @@ def main() -> None:
     dummy_month_year = "2016-01"
     for cluster in range(num_clusters):
         category = cluster_to_category[str(cluster)]
-        dummy_title = f"Cluster {cluster} Center"
+        dummy_title = f"Ignore-0-0-{cluster}"
         data["x"] = np.append(data["x"], 0)
         data["y"] = np.append(data["y"], 0)
         data["categories"] = np.append(data["categories"], category)
@@ -230,7 +230,10 @@ def main() -> None:
         x="categories",
         y="number_of_movies",
         animation_frame="month_year_added",
-        range_y=[0, animated_df.number_of_movies.max()],
+        range_y=[
+            1,
+            animated_df.number_of_movies.max(),
+        ],  # <----------- REMOVE 1 FOR DUMMY DATA
         title="Number of Movies in Each Category by Month",
         labels={
             "categories": "Category",
