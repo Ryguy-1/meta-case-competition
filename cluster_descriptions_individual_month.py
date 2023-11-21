@@ -85,6 +85,17 @@ def main() -> None:
         ],  # Map titles to month-year
     }
 
+    # Add Single Dummy Data in Each Category for First Month in Center of Respective Cluster
+    dummy_month_year = "2016-01"
+    for cluster in range(num_clusters):
+        category = cluster_to_category[str(cluster)]
+        dummy_title = f"Cluster {cluster} Center"
+        data["x"] = np.append(data["x"], 0)
+        data["y"] = np.append(data["y"], 0)
+        data["categories"] = np.append(data["categories"], category)
+        data["movie_titles"] = np.append(data["movie_titles"], dummy_title)
+        data["month_year_added"] = np.append(data["month_year_added"], dummy_month_year)
+
     vis_df = pd.DataFrame(data)
 
     # Convert 'month_year_added' to Period object for filtering and sorting
