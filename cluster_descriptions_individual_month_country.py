@@ -195,8 +195,6 @@ def main() -> None:
 
     fig.update_xaxes(title_text="Similarity Metric 1")
     fig.update_yaxes(title_text="Similarity Metric 2")
-    fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(showgrid=False)
     fig.update_layout(showlegend=True)
     fig.show()
 
@@ -237,8 +235,6 @@ def main() -> None:
     )
 
     bar_fig.update_layout(showlegend=False)
-    bar_fig.update_xaxes(showgrid=False)
-    bar_fig.update_yaxes(showgrid=False)
     bar_fig.show()
 
     # Optional: Save the animation as HTML
@@ -277,8 +273,6 @@ def main() -> None:
     )
 
     animated_category_fig.update_layout(showlegend=True)
-    animated_category_fig.update_xaxes(showgrid=False)
-    animated_category_fig.update_yaxes(showgrid=False)
     animated_category_fig.show()
 
     # Optional: Save the animation as HTML
