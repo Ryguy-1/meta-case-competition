@@ -167,6 +167,8 @@ def main() -> None:
 
     fig.update_xaxes(title_text="Similarity Metric 1")
     fig.update_yaxes(title_text="Similarity Metric 2")
+    fig.update_layout(plot_bgcolor="#f0f6f6")
+    fig.update_layout(paper_bgcolor="#f0f6f6")
     fig.update_layout(showlegend=True)
     fig.show()
 
@@ -207,6 +209,9 @@ def main() -> None:
     )
 
     bar_fig.update_layout(showlegend=False)
+    bar_fig.update_layout(plot_bgcolor="#f0f6f6")
+    bar_fig.update_layout(paper_bgcolor="#f0f6f6")
+    bar_fig.update_layout(xaxis_tickangle=20)
     bar_fig.show()
 
     # Optional: Save the animation as HTML
@@ -245,6 +250,9 @@ def main() -> None:
     )
 
     animated_category_fig.update_layout(showlegend=True)
+    animated_category_fig.update_layout(plot_bgcolor="#f0f6f6")
+    animated_category_fig.update_layout(paper_bgcolor="#f0f6f6")
+    animated_category_fig.update_layout(xaxis_tickangle=20)
     animated_category_fig.show()
 
     # Optional: Save the animation as HTML
