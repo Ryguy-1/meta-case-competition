@@ -103,9 +103,13 @@ def gen_num_per_country_over_time(data, output_filename):
     # Finalizing the plot
     plt.xlabel("Year", fontsize=12)
     plt.ylabel("Number of Titles", fontsize=12)
-    plt.title("Number of Netflix Titles per Country Over Time", fontsize=14)
+    plt.title("Number of Netflix Titles Added Per Year By Country", fontsize=14)
+    # Make window (not figure) background #f0f6f6
+    ax = plt.gca()
+    ax.set_facecolor("#f0f6f6")
+    plt.gcf().set_facecolor("#f0f6f6")
     plt.tight_layout()
-    plt.savefig(output_filename, bbox_inches="tight", dpi=300)
+    plt.savefig(output_filename, bbox_inches="tight", dpi=1200)
 
 
 def gen_year_over_year_growth_bar_charts(data, output_folder):

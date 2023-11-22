@@ -291,8 +291,10 @@ def gen_color_to_isolation_metric_data(
     plt.ylabel("Relative Isolation Metric")
     plt.title("Relative Isolation of Each Color (Higher = More Isolated)")
     plt.tight_layout()
-    plt.gca().set_facecolor("#f0f6f6")
-    plt.savefig(color_to_isolation_metric_plot_filepath, dpi=600)
+    ax = plt.gca()
+    ax.set_facecolor("#f0f6f6")
+    plt.gcf().patch.set_facecolor("#f0f6f6")
+    plt.savefig(color_to_isolation_metric_plot_filepath, dpi=1200)
     plt.close()
 
 
