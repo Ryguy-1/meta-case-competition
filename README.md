@@ -11,15 +11,22 @@ Note: This was only my part of the project. Other Graphs and Visualizations were
 ## Network Graph of Netflix Talent (Connected by Worked With on a Project)
 
 ![Network Graph of Netflix Talent](data/actor-node-map-5k-5k.png)
+
 ### Node Size is Proportional to TMDB Popularity. Color is auto-identified by Gephi's community detection algorithm.
 
 ![Isolation Index of Netflix Talent](generated/isolation_metric_for_each_color.png)
 ![Most Popular Country Per Color](generated/most_common_country_for_each_color.png)
 
+## Animated (Open HTML File to See) Map of Titles Added Semantically Clustered Through K-Means and Labeled by GPT with Descriptions.
+
+![Animated Map of Titles Added Semantically Clustered Through K-Means and Labeled by GPT with Descriptions](generated/catalog_visualization_screenshot.png)
+
 ## Number of Titles Per Production Country Over Time
+
 ![Number of Titles Per Production Country Over Time](generated/title_counts_by_country.png)
 
 ## Misc Graphs Not Presented in Final Presentation
+
 ![G1](generated/col_4_age_of_actor_over_time.png)
 ![G2](generated/col_4_age_of_director_over_time.png)
 ![G3](generated/col_4_gender_of_actor_over_time.png)
