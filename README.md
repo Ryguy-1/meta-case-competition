@@ -17,7 +17,7 @@ Note: This was only my part of the project. Other Graphs and Visualizations were
 ![Isolation Index of Netflix Talent](generated/isolation_metric_for_each_color.png)
 ![Most Popular Country Per Color](generated/most_common_country_for_each_color.png)
 
-## Animated (Open [GitHub Pages](https://Ryguy-1.github.io/meta-case-competition) to See) Map of Titles Added Semantically Clustered Through K-Means and Labeled by GPT with Descriptions.
+## Animated (Open [GitHub Pages](https://ryguy-1.github.io/meta-case-competition) to See) Map of Titles Added Semantically Clustered Through K-Means and Labeled by GPT with Descriptions.
 
 ![Animated Map of Titles Added Semantically Clustered Through K-Means and Labeled by GPT with Descriptions](generated/catalog_visualization_screenshot.png)
 
